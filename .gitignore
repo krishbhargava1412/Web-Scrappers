@@ -1,0 +1,102 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Virtual environments
+venv/
+.venv/
+env/
+ENV/
+
+# Environment and secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.crt
+cookies.txt
+*.cookies
+
+# Logs and runtime state
+*.log
+logs/
+*.pid
+*.tmp
+*.temp
+
+# Generated CSV/report outputs
+products_output.csv
+*_output.csv
+*_results.csv
+FINAL_REPORT.txt
+scraper_output/
+results/
+results_*/
+downloads/
+Video_Downloader/downloads/
+
+# Truecaller generated data
+truecaller_scraper/results/
+truecaller_scraper/results_*/
+truecaller_scraper/*_for_scraping.csv
+truecaller_scraper/local_invalid.csv
+truecaller_scraper/scraped_*.csv
+truecaller_scraper/FINAL_REPORT.txt
+
+# Large/private input data
+truecaller_scraper/all_leads_phones.csv
+*.xlsx
+*.xls
+
+# Browser profiles and caches
+alibaba_browser_profile/
+Alibaba_Indiamart_scrapper/alibaba_browser_profile/
+.playwright/
+playwright-report/
+test-results/
+
+# Downloaded media and yt-dlp artifacts
+*.mp4
+*.mkv
+*.webm
+*.mov
+*.avi
+*.mp3
+*.m4a
+*.wav
+*.flac
+*.part
+*.ytdl
+*.info.json
+*.description
+*.vtt
+*.srt
+*.jpg
+*.jpeg
+*.png
+*.webp
+
+# Archives
+*.zip
+*.rar
+*.7z
+*.tar
+*.gz
+
+# IDE/editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
