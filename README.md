@@ -3,6 +3,7 @@
 A collection of Python scraping and downloading utilities:
 
 - `Alibaba_Indiamart_scrapper/` scrapes product listings from IndiaMart and Alibaba.
+- `Influencer_Marketing_Scrapper/` discovers public influencer profiles across platforms such as Instagram, Facebook, TikTok, YouTube, X, and LinkedIn using market-specific keyword configs.
 - `truecaller_scraper/` validates Indian phone numbers from CSV files and checks them with a Scrapy + Playwright Truecaller spider.
 - `Video_Downloader/` downloads videos from YouTube and many other sites using `yt-dlp`.
 
@@ -87,6 +88,30 @@ Important generated files:
 - `scraped_invalid.csv` Truecaller not-found or invalid rows
 - `scraped_blocked.csv` blocked, rate-limited, or error rows
 - `FINAL_REPORT.txt` final summary
+
+## Influencer Marketing Scraper
+
+Run one market from the sample config:
+
+```powershell
+cd Influencer_Marketing_Scrapper
+..\venv\Scripts\python.exe run_scraper.py --config .\markets.sample.json --market india
+```
+
+Run every configured market:
+
+```powershell
+cd Influencer_Marketing_Scrapper
+..\venv\Scripts\python.exe run_scraper.py --config .\markets.sample.json --all-markets
+```
+
+Optional overrides:
+
+```powershell
+..\venv\Scripts\python.exe run_scraper.py --config .\markets.sample.json --market uae --platform instagram facebook youtube --limit-per-query 15
+```
+
+Outputs are written to timestamped folders under `Influencer_Marketing_Scrapper/output/`.
 
 ## Video Downloaders
 

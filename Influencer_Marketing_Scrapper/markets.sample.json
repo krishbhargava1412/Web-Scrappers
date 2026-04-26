@@ -1,0 +1,39 @@
+{
+  "global_defaults": {
+    "platforms": ["youtube", "linkedin", "x", "instagram", "facebook", "tiktok"],
+    "search_terms": [
+      "influencer",
+      "creator",
+      "content creator",
+      "blogger",
+      "ugc creator"
+    ],
+    "niches": ["fashion", "beauty", "fitness", "food", "travel"],
+    "cities": [],
+    "languages": ["English"],
+    "countries": []
+  },
+  "markets": {
+    "india": {
+      "countries": ["India"],
+      "languages": ["English", "Hindi"],
+      "cities": ["Delhi", "Mumbai", "Bengaluru"],
+      "niches": ["fashion", "tech", "food", "finance"],
+      "platforms": ["youtube", "instagram", "facebook"]
+    },
+    "uae": {
+      "countries": ["United Arab Emirates", "Dubai", "Abu Dhabi"],
+      "languages": ["English", "Arabic"],
+      "cities": ["Dubai", "Abu Dhabi"],
+      "niches": ["luxury", "real estate", "beauty", "travel"],
+      "platforms": ["youtube", "instagram", "tiktok", "facebook"]
+    },
+    "us_b2b": {
+      "countries": ["United States"],
+      "languages": ["English"],
+      "cities": ["New York", "San Francisco", "Austin"],
+      "niches": ["marketing", "saas", "ai", "sales"],
+      "platforms": ["linkedin", "x", "youtube"]
+    }
+  }
+}
