@@ -21,6 +21,7 @@ import html as html_lib
 import json
 import logging
 import random
+import argparse
 from dataclasses import dataclass, fields
 from pathlib import Path
 from typing import Optional
@@ -457,34 +458,86 @@ def save_to_csv(products: list[Product], filename: str):
 
 # ── Main ──────────────────────────────────────────────────────────────────────
 
-async def main():
+def build_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(
+        description="Scrape IndiaMart and Alibaba product listings with Playwright."
+    )
+    parser.add_argument(
+        "-q",
+        "--query",
+        action="append",
+        default=[],
+        help="Product search query. Repeat to run multiple queries.",
+    )
+    parser.add_argument(
+        "-o",
+        "--output",
+        default=OUTPUT_FILE,
+        help=f"CSV output file (default: {OUTPUT_FILE})",
+    )
+    parser.add_argument(
+        "--site",
+        choices=["all", "indiamart", "alibaba"],
+        default="all",
+        help="Limit scraping to one site.",
+    )
+    parser.add_argument(
+        "--headful",
+        action="store_true",
+        help="Show the IndiaMart browser window. Alibaba keeps its configured browser mode.",
+    )
+    return parser
+
+
+async def main(
+    queries: Optional[list[str]] = None,
+    output_file: str = OUTPUT_FILE,
+    site: str = "all",
+    headless: bool = HEADLESS,
+):
     all_products: list[Product] = []
+    queries = queries or PRODUCTS_TO_SEARCH
 
     async with async_playwright() as pw:
-        indiamart_browser = await pw.chromium.launch(headless=HEADLESS)
-        alibaba_context = await new_alibaba_context(pw)
+        indiamart_browser = None
+        alibaba_context = None
 
-        for query in PRODUCTS_TO_SEARCH:
-            # IndiaMart — new page per search
-            page = await new_page(indiamart_browser)
-            results = await scrape_indiamart(page, query)
-            all_products.extend(results)
-            await page.context.close()
-            await random_delay()
+        if site in ("all", "indiamart"):
+            indiamart_browser = await pw.chromium.launch(headless=headless)
+        if site in ("all", "alibaba"):
+            alibaba_context = await new_alibaba_context(pw)
 
-            # Alibaba — new page per search
-            page = await alibaba_context.new_page()
-            results = await scrape_alibaba(page, query)
-            all_products.extend(results)
-            await page.close()
-            await random_delay()
+        for query in queries:
+            if indiamart_browser:
+                page = await new_page(indiamart_browser)
+                results = await scrape_indiamart(page, query)
+                all_products.extend(results)
+                await page.context.close()
+                await random_delay()
 
-        await alibaba_context.close()
-        await indiamart_browser.close()
+            if alibaba_context:
+                page = await alibaba_context.new_page()
+                results = await scrape_alibaba(page, query)
+                all_products.extend(results)
+                await page.close()
+                await random_delay()
 
-    save_to_csv(all_products, OUTPUT_FILE)
-    print(f"\nDone! {len(all_products)} products saved to '{OUTPUT_FILE}'")
+        if alibaba_context:
+            await alibaba_context.close()
+        if indiamart_browser:
+            await indiamart_browser.close()
+
+    save_to_csv(all_products, output_file)
+    print(f"\nDone! {len(all_products)} products saved to '{output_file}'")
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    args = build_parser().parse_args()
+    asyncio.run(
+        main(
+            queries=args.query or None,
+            output_file=args.output,
+            site=args.site,
+            headless=not args.headful,
+        )
+    )

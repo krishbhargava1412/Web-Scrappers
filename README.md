@@ -29,6 +29,24 @@ python -m playwright install chromium
 
 FFmpeg must be available on `PATH` for the video downloader when downloading separate audio/video streams.
 
+## Unified Desktop App
+
+Run the hub from the project root:
+
+```powershell
+.\venv\Scripts\python.exe scraper_hub.py
+```
+
+The hub provides one desktop window with tabs for:
+
+- IndiaMart/Alibaba product scraping
+- Influencer discovery
+- Truecaller phone validation/scraping
+- Stock market price scraping
+- Universal and YouTube video downloads
+
+Each tab builds the command for the existing scraper, runs it in the right project folder, and streams logs into the app. Use the stop button to interrupt a running task.
+
 ## IndiaMart and Alibaba Scrapers
 
 Requests-based scraper:
@@ -45,9 +63,39 @@ cd Alibaba_Indiamart_scrapper
 ..\venv\Scripts\python.exe scraper_playwright.py
 ```
 
-Edit `PRODUCTS_TO_SEARCH` inside the script to change search terms. Outputs are written to `products_output.csv`.
+Both product scrapers also accept runtime options for the unified app or direct CLI use:
+
+```powershell
+..\venv\Scripts\python.exe scraper_playwright.py --site all --query "steel pipes" --query "copper wire" --output products_output.csv
+..\venv\Scripts\python.exe scraper_requests.py --site indiamart --query "cnc router machine" --output products_output.csv
+```
+
+If no `--query` is provided, the scripts fall back to `PRODUCTS_TO_SEARCH` inside the file. Outputs are written to `products_output.csv` unless `--output` is provided.
 
 Alibaba may show verification or CAPTCHA pages. The Playwright scraper uses `alibaba_browser_profile/` so cookies and local storage can be reused after manual verification. That folder is ignored by Git.
+
+## Stock Market Price Scraper
+
+Fetch latest prices for complete supported market universes instead of typing every symbol manually.
+
+Supported all-stock universes:
+
+- India NSE equities from the NSE equity list
+- US Nasdaq-listed and other US exchange-listed securities from Nasdaq Trader symbol directories
+
+Price data is fetched in batches from Yahoo Finance quote endpoints and saved with a timestamp.
+
+```powershell
+cd Stock_Market_Scraper
+..\venv\Scripts\python.exe stock_price_scraper.py --market india --output-dir output
+..\venv\Scripts\python.exe stock_price_scraper.py --market us --output-dir output
+..\venv\Scripts\python.exe stock_price_scraper.py --market all --output-dir output --json --zip
+```
+
+Main outputs:
+
+- `stock_symbols_YYYYMMDD_HHMMSS.csv`
+- `stock_prices_YYYYMMDD_HHMMSS.csv`
 
 ## Truecaller Phone Scraper
 

@@ -20,6 +20,7 @@ import json
 import time
 import random
 import logging
+import argparse
 from dataclasses import dataclass, fields
 from typing import Optional
 
@@ -323,23 +324,53 @@ def save_to_csv(products: list[Product], filename: str):
 
 # ── Main ──────────────────────────────────────────────────────────────────────
 
-def main():
-    all_products: list[Product] = []
+def build_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(
+        description="Scrape IndiaMart and Alibaba product listings with requests."
+    )
+    parser.add_argument(
+        "-q",
+        "--query",
+        action="append",
+        default=[],
+        help="Product search query. Repeat to run multiple queries.",
+    )
+    parser.add_argument(
+        "-o",
+        "--output",
+        default=OUTPUT_FILE,
+        help=f"CSV output file (default: {OUTPUT_FILE})",
+    )
+    parser.add_argument(
+        "--site",
+        choices=["all", "indiamart", "alibaba"],
+        default="all",
+        help="Limit scraping to one site.",
+    )
+    return parser
 
-    for query in PRODUCTS_TO_SEARCH:
+
+def main(queries: Optional[list[str]] = None, output_file: str = OUTPUT_FILE, site: str = "all"):
+    all_products: list[Product] = []
+    queries = queries or PRODUCTS_TO_SEARCH
+
+    for query in queries:
         # IndiaMart
-        results = scrape_indiamart(query)
-        all_products.extend(results)
-        random_delay()
+        if site in ("all", "indiamart"):
+            results = scrape_indiamart(query)
+            all_products.extend(results)
+            random_delay()
 
         # Alibaba
-        results = scrape_alibaba(query)
-        all_products.extend(results)
-        random_delay()
+        if site in ("all", "alibaba"):
+            results = scrape_alibaba(query)
+            all_products.extend(results)
+            random_delay()
 
-    save_to_csv(all_products, OUTPUT_FILE)
-    print(f"\nDone! {len(all_products)} products saved to '{OUTPUT_FILE}'")
+    save_to_csv(all_products, output_file)
+    print(f"\nDone! {len(all_products)} products saved to '{output_file}'")
 
 
 if __name__ == "__main__":
-    main()
+    args = build_parser().parse_args()
+    main(queries=args.query or None, output_file=args.output, site=args.site)
