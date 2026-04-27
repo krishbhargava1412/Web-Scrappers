@@ -534,7 +534,7 @@ def discover_profiles(
     search_engines: list[str],
     max_queries_per_platform: int | None = None,
     stop_after_empty_queries: int | None = None,
-) -> list[SearchResult]:
+) -> tuple[list[SearchResult], list[SearchDebugRecord]]:
     domain = PLATFORM_DOMAINS[platform]
     results: list[SearchResult] = []
     debug_records: list[SearchDebugRecord] = []
@@ -689,8 +689,7 @@ def discover_profiles(
                 )
                 break
 
-    discover_profiles.debug_records = debug_records
-    return results
+    return results, debug_records
 
 
 class _null_browser_session:

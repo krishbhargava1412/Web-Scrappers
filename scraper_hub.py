@@ -425,20 +425,20 @@ class ScraperHub(tk.Tk):
     def _run_process(self, command: list[str], cwd: Path) -> None:
         env = os.environ.copy()
         env["PYTHONIOENCODING"] = "utf-8"
-        flags = subprocess.CREATE_NEW_PROCESS_GROUP if os.name == "nt" else 0
+        popen_kwargs = dict(
+            cwd=str(cwd),
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            bufsize=1,
+            env=env,
+        )
+        if os.name == "nt":
+            popen_kwargs["creationflags"] = subprocess.CREATE_NEW_PROCESS_GROUP
         try:
-            self.process = subprocess.Popen(
-                command,
-                cwd=str(cwd),
-                stdout=subprocess.PIPE,
-                stderr=subprocess.STDOUT,
-                text=True,
-                encoding="utf-8",
-                errors="replace",
-                bufsize=1,
-                env=env,
-                creationflags=flags,
-            )
+            self.process = subprocess.Popen(command, **popen_kwargs)
             assert self.process.stdout is not None
             for line in self.process.stdout:
                 self.output_queue.put(line)
@@ -478,7 +478,12 @@ class ScraperHub(tk.Tk):
         else:
             path = Path(self.video_output.get()).expanduser().resolve()
         path.mkdir(parents=True, exist_ok=True)
-        os.startfile(path) if os.name == "nt" else subprocess.Popen(["xdg-open", str(path)])
+        if os.name == "nt":
+            os.startfile(path)
+        elif sys.platform == "darwin":
+            subprocess.Popen(["open", str(path)])
+        else:
+            subprocess.Popen(["xdg-open", str(path)])
 
     def _drain_output_queue(self) -> None:
         while True:
@@ -493,14 +498,22 @@ class ScraperHub(tk.Tk):
                 self._append_log(item)
         self.after(100, self._drain_output_queue)
 
+    _MAX_LOG_LINES = 5000
+
     def _append_log(self, text: str) -> None:
         self.log.insert("end", text)
+        total_lines = int(self.log.index("end-1c").split(".")[0])
+        if total_lines > self._MAX_LOG_LINES:
+            self.log.delete("1.0", f"{total_lines - self._MAX_LOG_LINES}.0")
         self.log.see("end")
 
     def _lines(self, widget: tk.Text) -> list[str]:
         return [line.strip() for line in widget.get("1.0", "end").splitlines() if line.strip()]
 
     def _format_command(self, command: list[str], cwd: Path) -> str:
+        if os.name == "nt":
+            parts = " ".join(f'"{p}"' if " " in p else p for p in command)
+            return f'cd /d "{cwd}" && {parts}'
         return f"cd {shlex.quote(str(cwd))} ; " + " ".join(shlex.quote(part) for part in command)
 
 

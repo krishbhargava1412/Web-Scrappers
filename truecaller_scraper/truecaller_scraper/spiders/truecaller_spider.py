@@ -224,8 +224,10 @@ class TruecallerSpider(scrapy.Spider):
 
             comments_raw = (sel.css("[class*='comment'] span::text").get()
                             or sel.css("[class*='Comment'] [class*='count']::text").get() or "")
-            try: comments_count = int(re.sub(r"\D", "", comments_raw))
-            except: comments_count = 0
+            try:
+                comments_count = int(re.sub(r"\D", "", comments_raw))
+            except (ValueError, TypeError):
+                comments_count = 0
 
             page_text = " ".join(sel.css("body *::text").getall()).lower()
             not_found = ["not found", "no results", "unknown number", "couldn't find", "no information"]

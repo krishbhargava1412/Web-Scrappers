@@ -1,4 +1,4 @@
-# Core scraping
+# Core HTTP scraping
 requests>=2.32.0
 beautifulsoup4>=4.12.0
 lxml>=5.0.0
@@ -12,10 +12,11 @@ scrapy>=2.13.0
 scrapy-playwright>=0.0.40
 pandas>=2.2.0
 phonenumbers>=8.13.0
+itemadapter>=0.9.0
 
 # Video downloaders
 yt-dlp[default,curl-cffi]>=2025.1.0
 colorama>=0.4.6
 
-# Optional CLI/progress helpers used by some scripts or future runs
+# Optional CLI/progress helpers used by some scripts
 tqdm>=4.66.0

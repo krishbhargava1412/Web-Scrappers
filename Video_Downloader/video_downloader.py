@@ -33,8 +33,10 @@ try:
     INFO  = Fore.CYAN   + "ℹ️ "
     WARN  = Fore.YELLOW + "⚠️ "
     RESET = Style.RESET_ALL
+    _HAS_COLORAMA = True
 except ImportError:
     OK = "✅"; ERR = "❌"; INFO = "ℹ️ "; WARN = "⚠️ "; RESET = ""
+    _HAS_COLORAMA = False
 
 
 # ─────────────────────────────────────────────────────────────
@@ -190,7 +192,7 @@ def build_opts(
         })
 
     # Playlist / channel limit
-    if limit:
+    if limit is not None and limit > 0:
         opts["playlistend"] = limit
 
     # Cookies (for age-restricted or login-required videos)
@@ -231,8 +233,9 @@ def build_opts(
 class UniversalDownloader:
 
     def print_banner(self):
+        color = Fore.CYAN if _HAS_COLORAMA else ""
         print(f"""
-{Fore.CYAN if 'Fore' in dir() else ''}
+{color}
 ╔══════════════════════════════════════════════════╗
 ║       🌐  Universal Web Video Downloader         ║
 ║          Powered by yt-dlp — 1000+ sites         ║
@@ -300,7 +303,7 @@ class UniversalDownloader:
         print(f"  Output   : {out_path}")
         if subtitles:
             print(f"  Subtitles: English")
-        if limit:
+        if limit is not None and limit > 0:
             print(f"  Limit    : {limit} videos per playlist/channel")
         print()
 
@@ -406,7 +409,7 @@ EXAMPLES
 
     parser.add_argument("urls", nargs="*", help="One or more video URLs")
     parser.add_argument("-q", "--quality",
-                        choices=["best", "1080p", "720p", "480p", "360p"],
+                        choices=["best", "1080p", "720p", "480p", "360p", "audio"],
                         default="best",
                         help="Video quality (default: best)")
     parser.add_argument("-o", "--output",
@@ -423,7 +426,8 @@ EXAMPLES
     parser.add_argument("--proxy",      metavar="URL",
                         help="Proxy URL e.g. socks5://127.0.0.1:1080")
     parser.add_argument("--username",   help="Username for sites that require login")
-    parser.add_argument("--password",   help="Password for sites that require login")
+    parser.add_argument("--password",   nargs="?", const="__PROMPT__",
+                        help="Password for login (prompts securely if no value given)")
     parser.add_argument("--info",       action="store_true",
                         help="Show info & available formats only (no download)")
     parser.add_argument("--list-sites", action="store_true",
@@ -435,8 +439,13 @@ EXAMPLES
 
 
 def main():
+    import getpass as _getpass
+
     parser = build_parser()
     args = parser.parse_args()
+
+    if args.password == "__PROMPT__":
+        args.password = _getpass.getpass("Password: ")
 
     dl = UniversalDownloader()
 

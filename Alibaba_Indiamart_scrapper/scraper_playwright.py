@@ -94,7 +94,10 @@ async def new_page(browser: Browser) -> Page:
 
     # Apply stealth patches if available
     if STEALTH_AVAILABLE:
-        await Stealth().apply_stealth_async(page)
+        try:
+            await Stealth().apply_stealth_async(page)
+        except Exception:
+            log.debug("playwright-stealth apply failed; continuing without stealth")
 
     # Block images/fonts/media to speed up loading
     await page.route(
@@ -128,8 +131,7 @@ async def new_alibaba_context(pw):
         str(profile_dir),
         **launch_options,
     )
-    if STEALTH_AVAILABLE:
-        await Stealth().apply_stealth_async(context)
+    # Stealth is applied per-page in scrape_alibaba instead of at context level
     return context
 
 
@@ -517,6 +519,11 @@ async def main(
 
             if alibaba_context:
                 page = await alibaba_context.new_page()
+                if STEALTH_AVAILABLE:
+                    try:
+                        await Stealth().apply_stealth_async(page)
+                    except Exception:
+                        log.debug("playwright-stealth apply failed for Alibaba page")
                 results = await scrape_alibaba(page, query)
                 all_products.extend(results)
                 await page.close()

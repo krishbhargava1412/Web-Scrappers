@@ -410,7 +410,7 @@ def main():
     )
     parser.add_argument("csv_file", help="Input CSV file path")
     parser.add_argument("--column", default=None, help="Phone column name (auto-detected if omitted)")
-    parser.add_argument("--output-dir", default="./scraper_output", help="Output directory")
+    parser.add_argument("--output-dir", default="./results", help="Output directory (default: ./results)")
     parser.add_argument("--local-only", action="store_true", help="Skip Truecaller scraping")
     parser.add_argument(
         "--speed",

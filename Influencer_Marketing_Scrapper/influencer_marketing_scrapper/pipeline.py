@@ -121,13 +121,14 @@ def _load_seen_urls(history_file: Path) -> set[str]:
 def _append_seen_profiles(history_file: Path, profiles: list[InfluencerProfile]) -> None:
     history_file.parent.mkdir(parents=True, exist_ok=True)
     existing = _load_seen_urls(history_file)
-    write_header = not history_file.exists()
 
-    with history_file.open("a", encoding="utf-8-sig", newline="") as handle:
-        writer = csv.DictWriter(
-            handle,
-            fieldnames=["market", "platform", "profile_url", "handle", "display_name", "saved_at"],
-        )
+    fieldnames = ["market", "platform", "profile_url", "handle", "display_name", "saved_at"]
+    with history_file.open("a+", encoding="utf-8-sig", newline="") as handle:
+        # Check if file is empty to decide whether to write header
+        handle.seek(0, 2)  # seek to end
+        write_header = handle.tell() == 0
+
+        writer = csv.DictWriter(handle, fieldnames=fieldnames)
         if write_header:
             writer.writeheader()
 
@@ -236,7 +237,7 @@ def run_market_scrape(
             results = seeded_results[platform]
             log.info("[%s] Using %s seeded profile URL(s) for %s", market.name, len(results), platform)
         else:
-            results = discover_profiles(
+            results, discovery_debug = discover_profiles(
                 client,
                 market,
                 platform,
@@ -245,7 +246,7 @@ def run_market_scrape(
                 max_queries_per_platform,
                 stop_after_empty_queries,
             )
-            search_debug_records.extend(getattr(discover_profiles, "debug_records", []))
+            search_debug_records.extend(discovery_debug)
         random.shuffle(results)
         fresh_results = [result for result in results if result.url not in seen_urls]
         skipped_repeats = len(results) - len(fresh_results)

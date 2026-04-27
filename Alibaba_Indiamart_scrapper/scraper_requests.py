@@ -74,12 +74,10 @@ class Product:
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
-def get_page(url: str, params: Optional[dict] = None) -> Optional[BeautifulSoup]:
+def get_page(session: requests.Session, url: str, params: Optional[dict] = None) -> Optional[BeautifulSoup]:
     """Fetch a page and return a BeautifulSoup object, or None on failure."""
     try:
-        session = requests.Session()
-        session.trust_env = USE_ENV_PROXIES
-        response = session.get(url, headers=HEADERS, params=params, timeout=15)
+        response = session.get(url, params=params, timeout=15)
         response.raise_for_status()
         return BeautifulSoup(response.text, "lxml")
     except requests.exceptions.HTTPError as e:
@@ -160,7 +158,7 @@ def parse_indiamart_next_data(soup: BeautifulSoup, query: str) -> list[Product]:
 
 # ── IndiaMart Scraper ─────────────────────────────────────────────────────────
 
-def scrape_indiamart(query: str) -> list[Product]:
+def scrape_indiamart(session: requests.Session, query: str) -> list[Product]:
     """
     Scrape IndiaMart search results for a given product query.
     URL pattern: https://dir.indiamart.com/search.mp?ss=<query>
@@ -170,7 +168,7 @@ def scrape_indiamart(query: str) -> list[Product]:
     params = {"ss": query}
 
     log.info(f"[IndiaMart] Searching: '{query}'")
-    soup = get_page(url, params=params)
+    soup = get_page(session, url, params=params)
     if not soup:
         log.warning(f"[IndiaMart] Failed to fetch results for '{query}'")
         return results
@@ -227,7 +225,7 @@ def scrape_indiamart(query: str) -> list[Product]:
 
 # ── Alibaba Scraper ───────────────────────────────────────────────────────────
 
-def scrape_alibaba(query: str) -> list[Product]:
+def scrape_alibaba(session: requests.Session, query: str) -> list[Product]:
     """
     Scrape Alibaba search results for a given product query.
     URL pattern: https://www.alibaba.com/trade/search?SearchText=<query>
@@ -237,7 +235,7 @@ def scrape_alibaba(query: str) -> list[Product]:
     params = {"SearchText": query, "IndexArea": "product_en"}
 
     log.info(f"[Alibaba] Searching: '{query}'")
-    soup = get_page(url, params=params)
+    soup = get_page(session, url, params=params)
     if not soup:
         log.warning(f"[Alibaba] Failed to fetch results for '{query}'")
         return results
@@ -347,23 +345,33 @@ def build_parser() -> argparse.ArgumentParser:
         default="all",
         help="Limit scraping to one site.",
     )
+    parser.add_argument(
+        "--use-env-proxies",
+        action="store_true",
+        help="Honor HTTP(S)_PROXY environment variables.",
+    )
     return parser
 
 
-def main(queries: Optional[list[str]] = None, output_file: str = OUTPUT_FILE, site: str = "all"):
+def main(queries: Optional[list[str]] = None, output_file: str = OUTPUT_FILE, site: str = "all",
+         use_env_proxies: bool = False):
     all_products: list[Product] = []
     queries = queries or PRODUCTS_TO_SEARCH
+
+    session = requests.Session()
+    session.headers.update(HEADERS)
+    session.trust_env = use_env_proxies
 
     for query in queries:
         # IndiaMart
         if site in ("all", "indiamart"):
-            results = scrape_indiamart(query)
+            results = scrape_indiamart(session, query)
             all_products.extend(results)
             random_delay()
 
         # Alibaba
         if site in ("all", "alibaba"):
-            results = scrape_alibaba(query)
+            results = scrape_alibaba(session, query)
             all_products.extend(results)
             random_delay()
 
@@ -373,4 +381,5 @@ def main(queries: Optional[list[str]] = None, output_file: str = OUTPUT_FILE, si
 
 if __name__ == "__main__":
     args = build_parser().parse_args()
-    main(queries=args.query or None, output_file=args.output, site=args.site)
+    main(queries=args.query or None, output_file=args.output, site=args.site,
+         use_env_proxies=args.use_env_proxies)

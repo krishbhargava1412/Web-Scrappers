@@ -1,19 +1,59 @@
+# Auto-detect text files and normalise line endings
 * text=auto
 
+# Source code — always LF
 *.py text eol=lf
 *.md text eol=lf
 *.txt text eol=lf
 *.cfg text eol=lf
 *.ini text eol=lf
 *.json text eol=lf
-*.csv text eol=crlf
+*.yml text eol=lf
+*.yaml text eol=lf
+*.toml text eol=lf
+*.sh text eol=lf
 
+# Batch/PowerShell — keep CRLF on Windows
+*.bat text eol=crlf
+*.cmd text eol=crlf
+*.ps1 text eol=crlf
+
+# Data files — CRLF for CSV/TSV (Excel compatibility)
+*.csv text eol=crlf
+*.tsv text eol=crlf
+
+# Images
 *.png binary
 *.jpg binary
 *.jpeg binary
 *.webp binary
+*.gif binary
+*.ico binary
+
+# Audio/video
+*.mp3 binary
+*.m4a binary
+*.wav binary
+*.flac binary
+*.ogg binary
 *.mp4 binary
 *.mkv binary
 *.webm binary
+*.mov binary
+*.avi binary
+
+# Archives
 *.zip binary
 *.rar binary
+*.7z binary
+*.tar binary
+*.gz binary
+
+# Fonts
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.otf binary
+
+# Diffs — mark generated output as non-diffable
+*.csv -diff

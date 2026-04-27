@@ -1,4 +1,8 @@
-import re, csv, os, phonenumbers
+import csv
+import os
+import re
+
+import phonenumbers
 from phonenumbers import PhoneNumberType, number_type, geocoder, carrier
 from datetime import datetime
 from itemadapter import ItemAdapter
@@ -101,8 +105,10 @@ class CsvExportPipeline:
         self.valid_w   = csv.DictWriter(self.valid_f,   fieldnames=FIELDNAMES, extrasaction="ignore")
         self.invalid_w = csv.DictWriter(self.invalid_f, fieldnames=FIELDNAMES, extrasaction="ignore")
         self.blocked_w = csv.DictWriter(self.blocked_f, fieldnames=FIELDNAMES, extrasaction="ignore")
-        for w in (self.valid_w, self.invalid_w, self.blocked_w): w.writeheader()
-        for f in (self.valid_f, self.invalid_f, self.blocked_f): f.flush()
+        for w in (self.valid_w, self.invalid_w, self.blocked_w):
+            w.writeheader()
+        for f in (self.valid_f, self.invalid_f, self.blocked_f):
+            f.flush()
         self.counts = {"VALID": 0, "INVALID": 0, "BLOCKED": 0, "ERROR": 0}
     def process_item(self, item, spider):
         a = ItemAdapter(item)

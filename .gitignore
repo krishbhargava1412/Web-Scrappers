@@ -7,6 +7,9 @@ __pycache__/
 .ruff_cache/
 .coverage
 htmlcov/
+*.egg-info/
+dist/
+build/
 
 # Virtual environments
 venv/
@@ -75,6 +78,8 @@ test-results/
 *.m4a
 *.wav
 *.flac
+*.ogg
+*.opus
 *.part
 *.ytdl
 *.info.json
@@ -85,6 +90,8 @@ test-results/
 *.jpeg
 *.png
 *.webp
+*.gif
+*.thumbnail
 
 # Archives
 *.zip
@@ -92,14 +99,18 @@ test-results/
 *.7z
 *.tar
 *.gz
+*.tar.gz
+*.tar.bz2
 
 # IDE/editor
 .vscode/
 .idea/
 *.swp
 *.swo
+*~
 
 # OS files
 .DS_Store
 Thumbs.db
 desktop.ini
+ehthumbs.db
