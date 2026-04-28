@@ -45,6 +45,10 @@ results_*/
 Influencer_Marketing_Scrapper/output/
 Stock_Market_Scraper/output/
 Stock_Market_Scraper/output_*/
+Ecommerce_Scraper/*_products.csv
+Ecommerce_Scraper/*_reviews.csv
+Ecommerce_Scraper/price_comparison*.csv
+Social_Media_Scraper/output/
 downloads/
 Video_Downloader/downloads/
 

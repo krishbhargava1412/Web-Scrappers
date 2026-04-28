@@ -3,6 +3,8 @@
 A collection of Python scraping and downloading utilities:
 
 - `Alibaba_Indiamart_scrapper/` scrapes product listings from IndiaMart and Alibaba using either a lightweight `requests` scraper or a full `Playwright` browser scraper with anti-bot stealth.
+- `Ecommerce_Scraper/` scrapes product listings and reviews from Amazon (India & US) and Flipkart, plus a cross-platform price comparator.
+- `Social_Media_Scraper/` scrapes Reddit posts/comments, YouTube channel analytics, Google Maps business listings, and Twitter/X profiles and tweets.
 - `Influencer_Marketing_Scrapper/` discovers public influencer profiles across platforms such as Instagram, Facebook, TikTok, YouTube, X, and LinkedIn using market-specific keyword configs.
 - `truecaller_scraper/` validates Indian phone numbers from CSV files and checks them with a Scrapy + Playwright Truecaller spider.
 - `Stock_Market_Scraper/` fetches latest stock prices for complete market universes (India NSE, US Nasdaq/NYSE) from Yahoo Finance with crumb-based authentication.
@@ -41,6 +43,12 @@ Run the hub from the project root:
 The hub provides one desktop window with tabs for:
 
 - IndiaMart/Alibaba product scraping (requests or Playwright)
+- Amazon/Flipkart e-commerce scraping with optional review extraction
+- Cross-platform price comparison (Amazon India, Amazon US, Flipkart)
+- Reddit subreddit post and comment scraping
+- YouTube channel analytics and video stats
+- Google Maps business listing extraction
+- Twitter/X profile and tweet scraping
 - Influencer discovery
 - Truecaller phone validation/scraping
 - Stock market price scraping
@@ -226,6 +234,156 @@ For sites that require login, use `--username` and `--password`. The `--password
 ```
 
 Use `--help` on either script to see all playlist, cookies, proxy, and output options.
+
+## E-Commerce Scrapers (Amazon, Flipkart, Price Comparator)
+
+### Amazon Product Scraper
+
+Scrape Amazon India and/or US product listings:
+
+```powershell
+cd Ecommerce_Scraper
+..\venv\Scripts\python.exe amazon_scraper.py --query "wireless earbuds" --region india
+..\venv\Scripts\python.exe amazon_scraper.py --query "gaming laptop" --region us --output results.csv
+```
+
+With customer review scraping:
+
+```powershell
+..\venv\Scripts\python.exe amazon_scraper.py --query "smartphone" --region both --reviews --max-reviews 15
+```
+
+Key options:
+
+```text
+--region {india,us,both}  Amazon region (default: both)
+--reviews                 Also scrape customer reviews
+--max-pages N             Search result pages per query (default: 3)
+--max-reviews N           Reviews per product (default: 10)
+--use-env-proxies         Honor HTTP(S)_PROXY environment variables
+```
+
+Output files: `amazon_products.csv` (listings) and `amazon_reviews.csv` (reviews).
+
+### Flipkart Product Scraper
+
+```powershell
+cd Ecommerce_Scraper
+..\venv\Scripts\python.exe flipkart_scraper.py --query "wireless earbuds"
+..\venv\Scripts\python.exe flipkart_scraper.py --query "laptop" --query "smartwatch" --max-pages 5 --output results.csv
+```
+
+Key options:
+
+```text
+--max-pages N         Search result pages per query (default: 3)
+--use-env-proxies     Honor HTTP(S)_PROXY environment variables
+```
+
+### Cross-Platform Price Comparator
+
+Compare prices across Amazon India, Amazon US, and Flipkart simultaneously:
+
+```powershell
+cd Ecommerce_Scraper
+..\venv\Scripts\python.exe price_comparator.py --query "wireless earbuds"
+..\venv\Scripts\python.exe price_comparator.py --query "laptop" --site amazon_india --site flipkart
+..\venv\Scripts\python.exe price_comparator.py --query "phone case" --site all --max-pages 2
+```
+
+Available sites: `all`, `amazon_india`, `amazon_us`, `flipkart`.
+
+The comparator normalises prices, detects currencies, sorts results by price, and prints a summary table highlighting the best deal across platforms.
+
+## Social Media Scrapers
+
+### Reddit Scraper
+
+Scrape subreddit posts, comments, and metadata using Reddit's public JSON endpoints (no API key needed):
+
+```powershell
+cd Social_Media_Scraper
+..\venv\Scripts\python.exe reddit_scraper.py --subreddit technology --sort hot --limit 25
+..\venv\Scripts\python.exe reddit_scraper.py --subreddit python --subreddit programming --sort top --timeframe week
+..\venv\Scripts\python.exe reddit_scraper.py --subreddit india --comments --max-comments 10 --info
+```
+
+Search across subreddits:
+
+```powershell
+..\venv\Scripts\python.exe reddit_scraper.py --subreddit python --search "web scraping" --limit 15
+```
+
+Key options:
+
+```text
+--sort {hot,new,top,rising,controversial}  Post sort order (default: hot)
+--timeframe {hour,day,week,month,year,all}  For top/controversial (default: week)
+--limit N             Max posts per subreddit (default: 25)
+--comments            Scrape comments from top posts
+--max-comments N      Max comments per post (default: 20)
+--info                Fetch subreddit metadata (subscribers, etc.)
+```
+
+### YouTube Channel Analytics
+
+Scrape channel stats and video listings using yt-dlp (already installed):
+
+```powershell
+cd Social_Media_Scraper
+..\venv\Scripts\python.exe youtube_analytics.py --channel "@mkbhd" --videos --limit 20
+..\venv\Scripts\python.exe youtube_analytics.py --channel "UCBcRF18a7Qf58cCRy5xuWwQ" --details
+..\venv\Scripts\python.exe youtube_analytics.py --search "python tutorial" --limit 10
+```
+
+Key options:
+
+```text
+--channel HANDLE      Channel @handle, ID, or URL (repeatable)
+--search QUERY        Search YouTube videos
+--videos              Fetch video list for each channel
+--details             Full per-video metadata (slower, more data)
+--limit N             Max videos per channel/search (default: 20)
+```
+
+### Google Maps Business Scraper
+
+Scrape business listings from Google Maps using Playwright (headless Chromium). Google Maps is fully JavaScript-rendered, so a real browser engine is required:
+
+```powershell
+cd Social_Media_Scraper
+..\venv\Scripts\python.exe google_maps_scraper.py --query "restaurants" --location "Mumbai"
+..\venv\Scripts\python.exe google_maps_scraper.py --query "dentist" --location "Delhi" --limit 20
+..\venv\Scripts\python.exe google_maps_scraper.py --query "coffee shop" --location "New York" --headed
+```
+
+Key options:
+
+```text
+--location TEXT       City or area (appended to query)
+--limit N             Max results per query (default: 20)
+--headed              Show browser window (useful for debugging)
+```
+
+### Twitter/X Scraper
+
+Scrape public Twitter/X profiles and tweets using Playwright (headless Chromium). The scraper intercepts Twitter's internal GraphQL API calls for structured data:
+
+```powershell
+cd Social_Media_Scraper
+..\venv\Scripts\python.exe twitter_scraper.py --user "elonmusk" --tweets --limit 20
+..\venv\Scripts\python.exe twitter_scraper.py --user "narendramodi" --user "MKBHD" --tweets
+..\venv\Scripts\python.exe twitter_scraper.py --user "sundarpichai" --headed
+```
+
+Key options:
+
+```text
+--user USERNAME       Twitter username (repeatable)
+--tweets              Scrape recent tweets
+--limit N             Max tweets per user (default: 20)
+--headed              Show browser window (useful for debugging)
+```
 
 ## Repository Hygiene
 

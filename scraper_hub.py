@@ -66,10 +66,16 @@ class ScraperHub(tk.Tk):
         self.tabs.pack(fill="both", expand=True)
 
         self._build_products_tab()
+        self._build_ecommerce_tab()
+        self._build_price_compare_tab()
         self._build_influencer_tab()
         self._build_truecaller_tab()
         self._build_stocks_tab()
         self._build_video_tab()
+        self._build_reddit_tab()
+        self._build_youtube_stats_tab()
+        self._build_google_maps_tab()
+        self._build_twitter_tab()
 
         controls = ttk.Frame(bottom)
         controls.pack(fill="x", pady=(10, 6))
@@ -227,6 +233,163 @@ class ScraperHub(tk.Tk):
         ttk.Checkbutton(tab, text="Download English subtitles", variable=self.video_subtitles).pack(anchor="w", pady=4)
         ttk.Checkbutton(tab, text="Show info only", variable=self.video_info).pack(anchor="w", pady=4)
 
+    def _build_ecommerce_tab(self) -> None:
+        tab = ttk.Frame(self.tabs, padding=14)
+        self.tabs.add(tab, text="E-Commerce")
+
+        base = ROOT_DIR / "Ecommerce_Scraper"
+        self.ecom_site = tk.StringVar(value="amazon")
+        self.ecom_region = tk.StringVar(value="both")
+        self.ecom_output = tk.StringVar(value=str(base / "amazon_products.csv"))
+        self.ecom_reviews = tk.BooleanVar(value=False)
+        self.ecom_max_pages = tk.StringVar(value="3")
+        self.ecom_max_reviews = tk.StringVar(value="10")
+
+        row = ttk.Frame(tab)
+        row.pack(fill="x")
+        self._radio_group(row, "Site", self.ecom_site, [
+            ("Amazon", "amazon"), ("Flipkart", "flipkart"),
+        ])
+        self._radio_group(row, "Region", self.ecom_region, [
+            ("Both", "both"), ("India", "india"), ("US", "us"),
+        ])
+
+        ttk.Label(tab, text="Search queries, one per line").pack(anchor="w", pady=(16, 4))
+        self.ecom_queries = tk.Text(tab, height=6, wrap="word")
+        self.ecom_queries.insert("1.0", "wireless earbuds\ngaming laptop")
+        self.ecom_queries.pack(fill="x")
+
+        self._path_row(tab, "Output CSV", self.ecom_output, save=True)
+        self._entry_row(tab, "Max pages", self.ecom_max_pages)
+        ttk.Checkbutton(tab, text="Also scrape customer reviews (Amazon only)", variable=self.ecom_reviews).pack(anchor="w", pady=4)
+        self._entry_row(tab, "Max reviews/product", self.ecom_max_reviews)
+
+    def _build_price_compare_tab(self) -> None:
+        tab = ttk.Frame(self.tabs, padding=14)
+        self.tabs.add(tab, text="Price Compare")
+
+        base = ROOT_DIR / "Ecommerce_Scraper"
+        self.compare_output = tk.StringVar(value=str(base / "price_comparison.csv"))
+        self.compare_max_pages = tk.StringVar(value="1")
+        self.compare_amazon_in = tk.BooleanVar(value=True)
+        self.compare_amazon_us = tk.BooleanVar(value=True)
+        self.compare_flipkart = tk.BooleanVar(value=True)
+
+        row = ttk.Frame(tab)
+        row.pack(fill="x", pady=(0, 10))
+        ttk.Checkbutton(row, text="Amazon India", variable=self.compare_amazon_in).pack(side="left")
+        ttk.Checkbutton(row, text="Amazon US", variable=self.compare_amazon_us).pack(side="left", padx=(16, 0))
+        ttk.Checkbutton(row, text="Flipkart", variable=self.compare_flipkart).pack(side="left", padx=(16, 0))
+
+        ttk.Label(tab, text="Product queries to compare, one per line").pack(anchor="w", pady=(8, 4))
+        self.compare_queries = tk.Text(tab, height=6, wrap="word")
+        self.compare_queries.insert("1.0", "wireless earbuds")
+        self.compare_queries.pack(fill="x")
+
+        self._path_row(tab, "Output CSV", self.compare_output, save=True)
+        self._entry_row(tab, "Max pages/site", self.compare_max_pages)
+
+    def _build_reddit_tab(self) -> None:
+        tab = ttk.Frame(self.tabs, padding=14)
+        self.tabs.add(tab, text="Reddit")
+
+        base = ROOT_DIR / "Social_Media_Scraper"
+        self.reddit_output = tk.StringVar(value=str(base / "output"))
+        self.reddit_sort = tk.StringVar(value="hot")
+        self.reddit_timeframe = tk.StringVar(value="week")
+        self.reddit_limit = tk.StringVar(value="25")
+        self.reddit_comments = tk.BooleanVar(value=False)
+        self.reddit_max_comments = tk.StringVar(value="20")
+        self.reddit_comment_posts = tk.StringVar(value="5")
+        self.reddit_info = tk.BooleanVar(value=False)
+        self.reddit_search = tk.StringVar(value="")
+
+        ttk.Label(tab, text="Subreddits (one per line, without r/)").pack(anchor="w", pady=(0, 4))
+        self.reddit_subs = tk.Text(tab, height=4, wrap="word")
+        self.reddit_subs.insert("1.0", "technology\npython")
+        self.reddit_subs.pack(fill="x")
+
+        self._entry_row(tab, "Search query", self.reddit_search, hint="Optional: search within subreddits")
+
+        row = ttk.Frame(tab)
+        row.pack(fill="x", pady=6)
+        ttk.Label(row, text="Sort", width=16).pack(side="left")
+        ttk.Combobox(row, textvariable=self.reddit_sort,
+                     values=["hot", "new", "top", "rising", "controversial"],
+                     state="readonly", width=16).pack(side="left")
+        ttk.Label(row, text="  Timeframe").pack(side="left", padx=(12, 4))
+        ttk.Combobox(row, textvariable=self.reddit_timeframe,
+                     values=["hour", "day", "week", "month", "year", "all"],
+                     state="readonly", width=12).pack(side="left")
+
+        self._entry_row(tab, "Post limit", self.reddit_limit)
+        self._path_row(tab, "Output folder", self.reddit_output, directory=True)
+        ttk.Checkbutton(tab, text="Scrape comments from top posts", variable=self.reddit_comments).pack(anchor="w", pady=4)
+        self._entry_row(tab, "Max comments/post", self.reddit_max_comments)
+        self._entry_row(tab, "Comment top N posts", self.reddit_comment_posts)
+        ttk.Checkbutton(tab, text="Fetch subreddit metadata", variable=self.reddit_info).pack(anchor="w", pady=4)
+
+    def _build_youtube_stats_tab(self) -> None:
+        tab = ttk.Frame(self.tabs, padding=14)
+        self.tabs.add(tab, text="YouTube Stats")
+
+        base = ROOT_DIR / "Social_Media_Scraper"
+        self.yt_output = tk.StringVar(value=str(base / "output"))
+        self.yt_limit = tk.StringVar(value="20")
+        self.yt_videos = tk.BooleanVar(value=True)
+        self.yt_details = tk.BooleanVar(value=False)
+        self.yt_search = tk.StringVar(value="")
+
+        ttk.Label(tab, text="Channel handles / IDs / URLs, one per line").pack(anchor="w", pady=(0, 4))
+        self.yt_channels = tk.Text(tab, height=4, wrap="word")
+        self.yt_channels.insert("1.0", "@mkbhd")
+        self.yt_channels.pack(fill="x")
+
+        self._entry_row(tab, "Search query", self.yt_search, hint="Optional: search YouTube videos")
+        self._entry_row(tab, "Video limit", self.yt_limit)
+        self._path_row(tab, "Output folder", self.yt_output, directory=True)
+        ttk.Checkbutton(tab, text="Fetch video list for each channel", variable=self.yt_videos).pack(anchor="w", pady=4)
+        ttk.Checkbutton(tab, text="Fetch full per-video details (slower)", variable=self.yt_details).pack(anchor="w", pady=4)
+
+    def _build_google_maps_tab(self) -> None:
+        tab = ttk.Frame(self.tabs, padding=14)
+        self.tabs.add(tab, text="Google Maps")
+
+        base = ROOT_DIR / "Social_Media_Scraper"
+        self.gmaps_output = tk.StringVar(value=str(base / "output"))
+        self.gmaps_location = tk.StringVar(value="")
+        self.gmaps_limit = tk.StringVar(value="20")
+
+        ttk.Label(tab, text="Business queries, one per line").pack(anchor="w", pady=(0, 4))
+        self.gmaps_queries = tk.Text(tab, height=4, wrap="word")
+        self.gmaps_queries.insert("1.0", "restaurants")
+        self.gmaps_queries.pack(fill="x")
+
+        self._entry_row(tab, "Location", self.gmaps_location, hint="e.g. Mumbai, New York")
+        self._entry_row(tab, "Max results", self.gmaps_limit)
+        self._path_row(tab, "Output folder", self.gmaps_output, directory=True)
+        ttk.Label(tab, text="Uses Playwright (headless Chromium) to render Google Maps JS.",
+                  font=("TkDefaultFont", 8)).pack(anchor="w", pady=(8, 0))
+
+    def _build_twitter_tab(self) -> None:
+        tab = ttk.Frame(self.tabs, padding=14)
+        self.tabs.add(tab, text="Twitter/X")
+
+        base = ROOT_DIR / "Social_Media_Scraper"
+        self.twitter_output = tk.StringVar(value=str(base / "output"))
+        self.twitter_limit = tk.StringVar(value="20")
+        self.twitter_tweets = tk.BooleanVar(value=True)
+
+        ttk.Label(tab, text="Twitter usernames (one per line, without @)").pack(anchor="w", pady=(0, 4))
+        self.twitter_users = tk.Text(tab, height=4, wrap="word")
+        self.twitter_users.pack(fill="x")
+
+        self._entry_row(tab, "Tweet limit", self.twitter_limit)
+        self._path_row(tab, "Output folder", self.twitter_output, directory=True)
+        ttk.Checkbutton(tab, text="Scrape recent tweets", variable=self.twitter_tweets).pack(anchor="w", pady=4)
+        ttk.Label(tab, text="Uses Playwright (headless Chromium) to load x.com directly.",
+                  font=("TkDefaultFont", 8)).pack(anchor="w", pady=(4, 0))
+
     def _radio_group(self, parent: ttk.Frame, label: str, variable: tk.StringVar, options: list[tuple[str, str]]) -> None:
         frame = ttk.LabelFrame(parent, text=label, padding=8)
         frame.pack(side="left", padx=(0, 10))
@@ -283,6 +446,10 @@ class ScraperHub(tk.Tk):
         selected = self.tabs.tab(self.tabs.select(), "text")
         if selected == "Products":
             return self._product_command()
+        if selected == "E-Commerce":
+            return self._ecommerce_command()
+        if selected == "Price Compare":
+            return self._price_compare_command()
         if selected == "Influencers":
             return self._influencer_command()
         if selected == "Truecaller":
@@ -291,6 +458,14 @@ class ScraperHub(tk.Tk):
             return self._stocks_command()
         if selected == "Videos":
             return self._video_command()
+        if selected == "Reddit":
+            return self._reddit_command()
+        if selected == "YouTube Stats":
+            return self._youtube_stats_command()
+        if selected == "Google Maps":
+            return self._google_maps_command()
+        if selected == "Twitter/X":
+            return self._twitter_command()
         raise ValueError("Unknown tab selected.")
 
     def _product_command(self) -> tuple[list[str], Path]:
@@ -394,6 +569,74 @@ class ScraperHub(tk.Tk):
             cmd.append("--use-env-proxies")
         return cmd, cwd
 
+    def _ecommerce_command(self) -> tuple[list[str], Path]:
+        cwd = ROOT_DIR / "Ecommerce_Scraper"
+        queries = self._lines(self.ecom_queries)
+        if not queries:
+            raise ValueError("Enter at least one product query.")
+        output = self.ecom_output.get().strip()
+        if not output:
+            raise ValueError("Choose an output CSV for e-commerce results.")
+
+        site = self.ecom_site.get()
+        if site == "amazon":
+            script = "amazon_scraper.py"
+            cmd = [
+                sys.executable, script,
+                "--region", self.ecom_region.get(),
+                "--output", output,
+                "--max-pages", self.ecom_max_pages.get().strip() or "3",
+            ]
+            for q in queries:
+                cmd.extend(["--query", q])
+            if self.ecom_reviews.get():
+                cmd.append("--reviews")
+                cmd.extend(["--max-reviews", self.ecom_max_reviews.get().strip() or "10"])
+                reviews_path = str(Path(output).with_name("amazon_reviews.csv"))
+                cmd.extend(["--reviews-output", reviews_path])
+        else:
+            script = "flipkart_scraper.py"
+            cmd = [
+                sys.executable, script,
+                "--output", output,
+                "--max-pages", self.ecom_max_pages.get().strip() or "3",
+            ]
+            for q in queries:
+                cmd.extend(["--query", q])
+
+        return cmd, cwd
+
+    def _price_compare_command(self) -> tuple[list[str], Path]:
+        cwd = ROOT_DIR / "Ecommerce_Scraper"
+        queries = self._lines(self.compare_queries)
+        if not queries:
+            raise ValueError("Enter at least one product query to compare.")
+        output = self.compare_output.get().strip()
+        if not output:
+            raise ValueError("Choose an output CSV for comparison results.")
+
+        sites: list[str] = []
+        if self.compare_amazon_in.get():
+            sites.append("amazon_india")
+        if self.compare_amazon_us.get():
+            sites.append("amazon_us")
+        if self.compare_flipkart.get():
+            sites.append("flipkart")
+        if not sites:
+            raise ValueError("Select at least one site to compare.")
+
+        cmd = [
+            sys.executable, "price_comparator.py",
+            "--output", output,
+            "--max-pages", self.compare_max_pages.get().strip() or "1",
+        ]
+        for q in queries:
+            cmd.extend(["--query", q])
+        for site in sites:
+            cmd.extend(["--site", site])
+
+        return cmd, cwd
+
     def _video_command(self) -> tuple[list[str], Path]:
         cwd = ROOT_DIR / "Video_Downloader"
         urls = self._lines(self.video_urls)
@@ -420,6 +663,89 @@ class ScraperHub(tk.Tk):
             cmd.extend(["--max", limit])
         if cookies:
             cmd.extend(["--cookies", cookies])
+        return cmd, cwd
+
+    def _reddit_command(self) -> tuple[list[str], Path]:
+        cwd = ROOT_DIR / "Social_Media_Scraper"
+        subs = self._lines(self.reddit_subs)
+        search = self.reddit_search.get().strip()
+        if not subs and not search:
+            raise ValueError("Enter at least one subreddit or a search query.")
+
+        cmd = [
+            sys.executable, "reddit_scraper.py",
+            "--sort", self.reddit_sort.get(),
+            "--timeframe", self.reddit_timeframe.get(),
+            "--limit", self.reddit_limit.get().strip() or "25",
+            "--output-dir", self.reddit_output.get().strip() or str(cwd / "output"),
+        ]
+        for sub in subs:
+            cmd.extend(["--subreddit", sub])
+        if search:
+            cmd.extend(["--search", search])
+        if self.reddit_comments.get():
+            cmd.append("--comments")
+            cmd.extend(["--max-comments", self.reddit_max_comments.get().strip() or "20"])
+            cmd.extend(["--comment-posts", self.reddit_comment_posts.get().strip() or "5"])
+        if self.reddit_info.get():
+            cmd.append("--info")
+        return cmd, cwd
+
+    def _youtube_stats_command(self) -> tuple[list[str], Path]:
+        cwd = ROOT_DIR / "Social_Media_Scraper"
+        channels = self._lines(self.yt_channels)
+        search = self.yt_search.get().strip()
+        if not channels and not search:
+            raise ValueError("Enter at least one channel or a search query.")
+
+        cmd = [
+            sys.executable, "youtube_analytics.py",
+            "--limit", self.yt_limit.get().strip() or "20",
+            "--output-dir", self.yt_output.get().strip() or str(cwd / "output"),
+        ]
+        for ch in channels:
+            cmd.extend(["--channel", ch])
+        if search:
+            cmd.extend(["--search", search])
+        if self.yt_videos.get():
+            cmd.append("--videos")
+        if self.yt_details.get():
+            cmd.append("--details")
+        return cmd, cwd
+
+    def _google_maps_command(self) -> tuple[list[str], Path]:
+        cwd = ROOT_DIR / "Social_Media_Scraper"
+        queries = self._lines(self.gmaps_queries)
+        if not queries:
+            raise ValueError("Enter at least one business query.")
+
+        cmd = [
+            sys.executable, "google_maps_scraper.py",
+            "--limit", self.gmaps_limit.get().strip() or "20",
+            "--output-dir", self.gmaps_output.get().strip() or str(cwd / "output"),
+        ]
+        for q in queries:
+            cmd.extend(["--query", q])
+        location = self.gmaps_location.get().strip()
+        if location:
+            cmd.extend(["--location", location])
+        return cmd, cwd
+
+    def _twitter_command(self) -> tuple[list[str], Path]:
+        cwd = ROOT_DIR / "Social_Media_Scraper"
+        users = self._lines(self.twitter_users)
+        if not users:
+            raise ValueError("Enter at least one Twitter username.")
+
+        cmd = [
+            sys.executable, "twitter_scraper.py",
+            "--limit", self.twitter_limit.get().strip() or "20",
+            "--output-dir", self.twitter_output.get().strip() or str(cwd / "output"),
+        ]
+        for u in users:
+            cmd.extend(["--user", u])
+        if self.twitter_tweets.get():
+            cmd.append("--tweets")
         return cmd, cwd
 
     def _run_process(self, command: list[str], cwd: Path) -> None:
@@ -469,12 +795,24 @@ class ScraperHub(tk.Tk):
         selected = self.tabs.tab(self.tabs.select(), "text")
         if selected == "Products":
             path = Path(self.product_output.get()).expanduser().resolve().parent
+        elif selected == "E-Commerce":
+            path = Path(self.ecom_output.get()).expanduser().resolve().parent
+        elif selected == "Price Compare":
+            path = Path(self.compare_output.get()).expanduser().resolve().parent
         elif selected == "Influencers":
             path = Path(self.influencer_output.get()).expanduser().resolve()
         elif selected == "Truecaller":
             path = Path(self.truecaller_output.get()).expanduser().resolve()
         elif selected == "Stocks":
             path = Path(self.stock_output.get()).expanduser().resolve()
+        elif selected == "Reddit":
+            path = Path(self.reddit_output.get()).expanduser().resolve()
+        elif selected == "YouTube Stats":
+            path = Path(self.yt_output.get()).expanduser().resolve()
+        elif selected == "Google Maps":
+            path = Path(self.gmaps_output.get()).expanduser().resolve()
+        elif selected == "Twitter/X":
+            path = Path(self.twitter_output.get()).expanduser().resolve()
         else:
             path = Path(self.video_output.get()).expanduser().resolve()
         path.mkdir(parents=True, exist_ok=True)
