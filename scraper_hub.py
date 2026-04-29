@@ -77,6 +77,8 @@ class ScraperHub(tk.Tk):
         self._build_google_maps_tab()
         self._build_twitter_tab()
         self._build_linkedin_jobs_tab()
+        self._build_indeed_jobs_tab()
+        self._build_naukri_jobs_tab()
 
         controls = ttk.Frame(bottom)
         controls.pack(fill="x", pady=(10, 6))
@@ -411,6 +413,50 @@ class ScraperHub(tk.Tk):
         ttk.Label(tab, text="Uses Playwright (headless Chromium) to scrape public LinkedIn job listings.",
                   font=("TkDefaultFont", 8)).pack(anchor="w", pady=(8, 0))
 
+    def _build_indeed_jobs_tab(self) -> None:
+        tab = ttk.Frame(self.tabs, padding=14)
+        self.tabs.add(tab, text="Indeed Jobs")
+
+        base = ROOT_DIR / "Jobs_Scraper"
+        self.indeed_output = tk.StringVar(value=str(base / "output"))
+        self.indeed_location = tk.StringVar(value="")
+        self.indeed_limit = tk.StringVar(value="25")
+        self.indeed_headless = tk.BooleanVar(value=False)
+
+        ttk.Label(tab, text="Job queries (one per line, e.g. 'python developer')").pack(anchor="w", pady=(0, 4))
+        self.indeed_queries = tk.Text(tab, height=4, wrap="word")
+        self.indeed_queries.insert("1.0", "python developer")
+        self.indeed_queries.pack(fill="x")
+
+        self._entry_row(tab, "Location", self.indeed_location, hint="e.g. Bangalore, Remote, New York")
+        self._entry_row(tab, "Max results", self.indeed_limit)
+        self._path_row(tab, "Output folder", self.indeed_output, directory=True)
+        ttk.Checkbutton(tab, text="Hide Browser Window (Headless - may cause blocks)", variable=self.indeed_headless).pack(anchor="w", pady=4)
+        ttk.Label(tab, text="Uses Playwright with stealth mode. Best run with visible window to bypass Cloudflare.",
+                  font=("TkDefaultFont", 8)).pack(anchor="w", pady=(8, 0))
+
+    def _build_naukri_jobs_tab(self) -> None:
+        tab = ttk.Frame(self.tabs, padding=14)
+        self.tabs.add(tab, text="Naukri Jobs")
+
+        base = ROOT_DIR / "Jobs_Scraper"
+        self.naukri_output = tk.StringVar(value=str(base / "output"))
+        self.naukri_location = tk.StringVar(value="")
+        self.naukri_limit = tk.StringVar(value="20")
+        self.naukri_headless = tk.BooleanVar(value=False)
+
+        ttk.Label(tab, text="Job queries (one per line, e.g. 'python developer')").pack(anchor="w", pady=(0, 4))
+        self.naukri_queries = tk.Text(tab, height=4, wrap="word")
+        self.naukri_queries.insert("1.0", "python developer")
+        self.naukri_queries.pack(fill="x")
+
+        self._entry_row(tab, "Location", self.naukri_location, hint="e.g. Bangalore, Remote, Pune")
+        self._entry_row(tab, "Max results", self.naukri_limit)
+        self._path_row(tab, "Output folder", self.naukri_output, directory=True)
+        ttk.Checkbutton(tab, text="Hide Browser Window (Headless - may cause blocks)", variable=self.naukri_headless).pack(anchor="w", pady=4)
+        ttk.Label(tab, text="Uses Playwright with stealth mode. Best run with visible window to bypass Akamai.",
+                  font=("TkDefaultFont", 8)).pack(anchor="w", pady=(8, 0))
+
     def _radio_group(self, parent: ttk.Frame, label: str, variable: tk.StringVar, options: list[tuple[str, str]]) -> None:
         frame = ttk.LabelFrame(parent, text=label, padding=8)
         frame.pack(side="left", padx=(0, 10))
@@ -489,6 +535,10 @@ class ScraperHub(tk.Tk):
             return self._twitter_command()
         if selected == "LinkedIn Jobs":
             return self._linkedin_jobs_command()
+        if selected == "Indeed Jobs":
+            return self._indeed_jobs_command()
+        if selected == "Naukri Jobs":
+            return self._naukri_jobs_command()
         raise ValueError("Unknown tab selected.")
 
     def _product_command(self) -> tuple[list[str], Path]:
@@ -787,6 +837,46 @@ class ScraperHub(tk.Tk):
         location = self.linkedin_location.get().strip()
         if location:
             cmd.extend(["--location", location])
+        return cmd, cwd
+
+    def _indeed_jobs_command(self) -> tuple[list[str], Path]:
+        cwd = ROOT_DIR / "Jobs_Scraper"
+        queries = self._lines(self.indeed_queries)
+        if not queries:
+            raise ValueError("Enter at least one job search query.")
+
+        cmd = [
+            sys.executable, "indeed_scraper.py",
+            "--limit", self.indeed_limit.get().strip() or "25",
+            "--output-dir", self.indeed_output.get().strip() or str(cwd / "output"),
+        ]
+        for q in queries:
+            cmd.extend(["--query", q])
+        location = self.indeed_location.get().strip()
+        if location:
+            cmd.extend(["--location", location])
+        if not self.indeed_headless.get():
+            cmd.append("--headed")
+        return cmd, cwd
+
+    def _naukri_jobs_command(self) -> tuple[list[str], Path]:
+        cwd = ROOT_DIR / "Jobs_Scraper"
+        queries = self._lines(self.naukri_queries)
+        if not queries:
+            raise ValueError("Enter at least one job search query.")
+
+        cmd = [
+            sys.executable, "naukri_scraper.py",
+            "--limit", self.naukri_limit.get().strip() or "20",
+            "--output-dir", self.naukri_output.get().strip() or str(cwd / "output"),
+        ]
+        for q in queries:
+            cmd.extend(["--query", q])
+        location = self.naukri_location.get().strip()
+        if location:
+            cmd.extend(["--location", location])
+        if not self.naukri_headless.get():
+            cmd.append("--headed")
         return cmd, cwd
 
     def _run_process(self, command: list[str], cwd: Path) -> None:
