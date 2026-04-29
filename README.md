@@ -5,6 +5,7 @@ A collection of Python scraping and downloading utilities:
 - `Alibaba_Indiamart_scrapper/` scrapes product listings from IndiaMart and Alibaba using either a lightweight `requests` scraper or a full `Playwright` browser scraper with anti-bot stealth.
 - `Ecommerce_Scraper/` scrapes product listings and reviews from Amazon (India & US) and Flipkart, plus a cross-platform price comparator.
 - `Social_Media_Scraper/` scrapes Reddit posts/comments, YouTube channel analytics, Google Maps business listings, and Twitter/X profiles and tweets.
+- `Jobs_Scraper/` scrapes public job listings from LinkedIn with job title, company, location, posted date, and direct URLs.
 - `Influencer_Marketing_Scrapper/` discovers public influencer profiles across platforms such as Instagram, Facebook, TikTok, YouTube, X, and LinkedIn using market-specific keyword configs.
 - `truecaller_scraper/` validates Indian phone numbers from CSV files and checks them with a Scrapy + Playwright Truecaller spider.
 - `Stock_Market_Scraper/` fetches latest stock prices for complete market universes (India NSE, US Nasdaq/NYSE) from Yahoo Finance with crumb-based authentication.
@@ -49,6 +50,7 @@ The hub provides one desktop window with tabs for:
 - YouTube channel analytics and video stats
 - Google Maps business listing extraction
 - Twitter/X profile and tweet scraping
+- LinkedIn public job listing search
 - Influencer discovery
 - Truecaller phone validation/scraping
 - Stock market price scraping
@@ -383,6 +385,45 @@ Key options:
 --tweets              Scrape recent tweets
 --limit N             Max tweets per user (default: 20)
 --headed              Show browser window (useful for debugging)
+```
+
+### LinkedIn Job Scraper
+
+Scrape public job listings from LinkedIn using Playwright (headless Chromium). No login or API key required:
+
+```powershell
+cd Jobs_Scraper
+..\venv\Scripts\python.exe linkedin_scraper.py --query "python developer" --location "India"
+..\venv\Scripts\python.exe linkedin_scraper.py --query "data scientist" --location "Remote" --limit 50
+..\venv\Scripts\python.exe linkedin_scraper.py --query "devops engineer" --location "New York" --headed
+```
+
+Key options:
+
+```text
+--query TEXT          Job search query (repeatable)
+--location TEXT       Location filter (e.g. India, Remote, New York)
+--limit N             Max jobs per query (default: 25)
+--headed              Show browser window (useful for debugging)
+```
+
+### Indeed & Naukri Job Scrapers
+
+Scrape job listings from Indeed and Naukri using Playwright with stealth patches to bypass bot detection. These require running in headed mode to avoid Cloudflare/Akamai blocks:
+
+```powershell
+cd Jobs_Scraper
+..\venv\Scripts\python.exe indeed_scraper.py --query "python developer" --location "Bangalore" --headed
+..\venv\Scripts\python.exe naukri_scraper.py --query "data scientist" --limit 50 --headed
+```
+
+Key options for Indeed/Naukri:
+
+```text
+--query TEXT          Job search query (repeatable)
+--location TEXT       Location filter (e.g. Bangalore, Remote, Pune)
+--limit N             Max jobs per query (default: 20-25)
+--headed              Show browser window (REQUIRED for Indeed/Naukri to bypass blocks)
 ```
 
 ## Repository Hygiene

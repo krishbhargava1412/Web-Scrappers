@@ -49,6 +49,7 @@ Ecommerce_Scraper/*_products.csv
 Ecommerce_Scraper/*_reviews.csv
 Ecommerce_Scraper/price_comparison*.csv
 Social_Media_Scraper/output/
+Jobs_Scraper/output/
 downloads/
 Video_Downloader/downloads/
 

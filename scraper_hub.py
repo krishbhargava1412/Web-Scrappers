@@ -76,6 +76,7 @@ class ScraperHub(tk.Tk):
         self._build_youtube_stats_tab()
         self._build_google_maps_tab()
         self._build_twitter_tab()
+        self._build_linkedin_jobs_tab()
 
         controls = ttk.Frame(bottom)
         controls.pack(fill="x", pady=(10, 6))
@@ -390,6 +391,26 @@ class ScraperHub(tk.Tk):
         ttk.Label(tab, text="Uses Playwright (headless Chromium) to load x.com directly.",
                   font=("TkDefaultFont", 8)).pack(anchor="w", pady=(4, 0))
 
+    def _build_linkedin_jobs_tab(self) -> None:
+        tab = ttk.Frame(self.tabs, padding=14)
+        self.tabs.add(tab, text="LinkedIn Jobs")
+
+        base = ROOT_DIR / "Jobs_Scraper"
+        self.linkedin_output = tk.StringVar(value=str(base / "output"))
+        self.linkedin_location = tk.StringVar(value="")
+        self.linkedin_limit = tk.StringVar(value="25")
+
+        ttk.Label(tab, text="Job queries (one per line, e.g. 'python developer')").pack(anchor="w", pady=(0, 4))
+        self.linkedin_queries = tk.Text(tab, height=4, wrap="word")
+        self.linkedin_queries.insert("1.0", "python developer")
+        self.linkedin_queries.pack(fill="x")
+
+        self._entry_row(tab, "Location", self.linkedin_location, hint="e.g. India, Remote, New York")
+        self._entry_row(tab, "Max results", self.linkedin_limit)
+        self._path_row(tab, "Output folder", self.linkedin_output, directory=True)
+        ttk.Label(tab, text="Uses Playwright (headless Chromium) to scrape public LinkedIn job listings.",
+                  font=("TkDefaultFont", 8)).pack(anchor="w", pady=(8, 0))
+
     def _radio_group(self, parent: ttk.Frame, label: str, variable: tk.StringVar, options: list[tuple[str, str]]) -> None:
         frame = ttk.LabelFrame(parent, text=label, padding=8)
         frame.pack(side="left", padx=(0, 10))
@@ -466,6 +487,8 @@ class ScraperHub(tk.Tk):
             return self._google_maps_command()
         if selected == "Twitter/X":
             return self._twitter_command()
+        if selected == "LinkedIn Jobs":
+            return self._linkedin_jobs_command()
         raise ValueError("Unknown tab selected.")
 
     def _product_command(self) -> tuple[list[str], Path]:
@@ -746,6 +769,24 @@ class ScraperHub(tk.Tk):
             cmd.extend(["--user", u])
         if self.twitter_tweets.get():
             cmd.append("--tweets")
+        return cmd, cwd
+
+    def _linkedin_jobs_command(self) -> tuple[list[str], Path]:
+        cwd = ROOT_DIR / "Jobs_Scraper"
+        queries = self._lines(self.linkedin_queries)
+        if not queries:
+            raise ValueError("Enter at least one job search query.")
+
+        cmd = [
+            sys.executable, "linkedin_scraper.py",
+            "--limit", self.linkedin_limit.get().strip() or "25",
+            "--output-dir", self.linkedin_output.get().strip() or str(cwd / "output"),
+        ]
+        for q in queries:
+            cmd.extend(["--query", q])
+        location = self.linkedin_location.get().strip()
+        if location:
+            cmd.extend(["--location", location])
         return cmd, cwd
 
     def _run_process(self, command: list[str], cwd: Path) -> None:
