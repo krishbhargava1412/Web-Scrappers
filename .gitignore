@@ -3,6 +3,8 @@ __pycache__/
 *.py[cod]
 *$py.class
 .pytest_cache/
+pytest-cache-files-*/
+Real_Estate_Scraper/.pytest_tmp/
 .mypy_cache/
 .ruff_cache/
 .coverage
@@ -50,6 +52,9 @@ Ecommerce_Scraper/*_reviews.csv
 Ecommerce_Scraper/price_comparison*.csv
 Social_Media_Scraper/output/
 Jobs_Scraper/output/
+Real_Estate_Scraper/output/
+Real_Estate_Scraper/*_listings.csv
+Data_Intelligence_Scraper/output/
 downloads/
 Video_Downloader/downloads/
 

@@ -76,6 +76,8 @@ class ScraperHub(tk.Tk):
         self._build_youtube_stats_tab()
         self._build_google_maps_tab()
         self._build_twitter_tab()
+        self._build_real_estate_tab()
+        self._build_data_intelligence_tab()
         self._build_linkedin_jobs_tab()
         self._build_indeed_jobs_tab()
         self._build_naukri_jobs_tab()
@@ -393,6 +395,115 @@ class ScraperHub(tk.Tk):
         ttk.Label(tab, text="Uses Playwright (headless Chromium) to load x.com directly.",
                   font=("TkDefaultFont", 8)).pack(anchor="w", pady=(4, 0))
 
+    def _build_real_estate_tab(self) -> None:
+        tab = ttk.Frame(self.tabs, padding=14)
+        self.tabs.add(tab, text="Real Estate")
+
+        base = ROOT_DIR / "Real_Estate_Scraper"
+        self.property_output = tk.StringVar(value=str(base / "output" / "property_listings.csv"))
+        self.property_location = tk.StringVar(value="Mumbai")
+        self.property_max_pages = tk.StringVar(value="2")
+        self.property_direct_url = tk.StringVar(value="")
+        self.property_browser = tk.StringVar(value="auto")
+        self.property_magicbricks = tk.BooleanVar(value=True)
+        self.property_99acres = tk.BooleanVar(value=True)
+        self.property_json = tk.BooleanVar(value=False)
+        self.property_headed = tk.BooleanVar(value=False)
+        self.property_use_env_proxies = tk.BooleanVar(value=False)
+
+        row = ttk.Frame(tab)
+        row.pack(fill="x", pady=(0, 10))
+        ttk.Checkbutton(row, text="MagicBricks", variable=self.property_magicbricks).pack(side="left")
+        ttk.Checkbutton(row, text="99acres", variable=self.property_99acres).pack(side="left", padx=(16, 0))
+
+        ttk.Label(tab, text="Property queries, one per line").pack(anchor="w", pady=(0, 4))
+        self.property_queries = tk.Text(tab, height=5, wrap="word")
+        self.property_queries.insert("1.0", "2 bhk apartment\nvilla")
+        self.property_queries.pack(fill="x")
+
+        self._entry_row(tab, "Location", self.property_location, hint="e.g. Mumbai, Pune, Bengaluru")
+        self._entry_row(tab, "Direct URL", self.property_direct_url, hint="Optional: paste a 99acres results URL")
+        self._entry_row(tab, "Max pages", self.property_max_pages)
+        row = ttk.Frame(tab)
+        row.pack(fill="x", pady=6)
+        ttk.Label(row, text="Browser mode", width=16).pack(side="left")
+        ttk.Combobox(
+            row,
+            textvariable=self.property_browser,
+            values=["auto", "always", "never"],
+            state="readonly",
+            width=12,
+        ).pack(side="left")
+        self._path_row(tab, "Output CSV", self.property_output, save=True)
+        ttk.Checkbutton(tab, text="Also write JSON next to CSV", variable=self.property_json).pack(anchor="w", pady=4)
+        ttk.Checkbutton(tab, text="Show browser when rendering pages", variable=self.property_headed).pack(anchor="w", pady=4)
+        ttk.Checkbutton(tab, text="Use environment proxies", variable=self.property_use_env_proxies).pack(anchor="w", pady=4)
+        ttk.Label(tab, text="Uses requests + BeautifulSoup for public listing pages.",
+                  font=("TkDefaultFont", 8)).pack(anchor="w", pady=(8, 0))
+
+    def _build_data_intelligence_tab(self) -> None:
+        tab = ttk.Frame(self.tabs, padding=14)
+        self.tabs.add(tab, text="Data Intel")
+
+        base = ROOT_DIR / "Data_Intelligence_Scraper"
+        self.intel_mode = tk.StringVar(value="news")
+        self.intel_output = tk.StringVar(value=str(base / "output" / "data_intelligence.csv"))
+        self.intel_limit = tk.StringVar(value="25")
+        self.intel_serp_provider = tk.StringVar(value="auto")
+        self.intel_serp_browser = tk.StringVar(value="never")
+        self.intel_serp_headed = tk.BooleanVar(value=False)
+        self.intel_github_language = tk.StringVar(value="")
+        self.intel_github_topic = tk.StringVar(value="")
+        self.intel_json = tk.BooleanVar(value=False)
+        self.intel_use_env_proxies = tk.BooleanVar(value=False)
+
+        row = ttk.Frame(tab)
+        row.pack(fill="x", pady=(0, 10))
+        ttk.Label(row, text="Mode", width=16).pack(side="left")
+        ttk.Combobox(
+            row,
+            textvariable=self.intel_mode,
+            values=["news", "github", "serp", "whois"],
+            state="readonly",
+            width=14,
+        ).pack(side="left")
+
+        ttk.Label(tab, text="Inputs, one per line").pack(anchor="w", pady=(0, 4))
+        self.intel_inputs = tk.Text(tab, height=6, wrap="word")
+        self.intel_inputs.insert("1.0", "https://news.google.com/rss/search?q=real+estate")
+        self.intel_inputs.pack(fill="x")
+
+        self._entry_row(tab, "Limit", self.intel_limit)
+        row = ttk.Frame(tab)
+        row.pack(fill="x", pady=6)
+        ttk.Label(row, text="SERP provider", width=16).pack(side="left")
+        ttk.Combobox(
+            row,
+            textvariable=self.intel_serp_provider,
+            values=["auto", "google", "duckduckgo"],
+            state="readonly",
+            width=14,
+        ).pack(side="left")
+        ttk.Label(row, text="  Browser").pack(side="left", padx=(12, 4))
+        ttk.Combobox(
+            row,
+            textvariable=self.intel_serp_browser,
+            values=["never", "auto", "always"],
+            state="readonly",
+            width=10,
+        ).pack(side="left")
+        self._entry_row(tab, "GitHub language", self.intel_github_language, hint="Optional for github mode")
+        self._entry_row(tab, "GitHub topic", self.intel_github_topic, hint="Optional for github mode")
+        self._path_row(tab, "Output CSV", self.intel_output, save=True)
+        ttk.Checkbutton(tab, text="Also write JSON next to CSV", variable=self.intel_json).pack(anchor="w", pady=4)
+        ttk.Checkbutton(tab, text="Show browser for SERP challenge pages", variable=self.intel_serp_headed).pack(anchor="w", pady=4)
+        ttk.Checkbutton(tab, text="Use environment proxies", variable=self.intel_use_env_proxies).pack(anchor="w", pady=4)
+        ttk.Label(
+            tab,
+            text="Modes: news expects RSS/Atom URLs, github/serp expect search queries, whois expects domains.",
+            font=("TkDefaultFont", 8),
+        ).pack(anchor="w", pady=(8, 0))
+
     def _build_linkedin_jobs_tab(self) -> None:
         tab = ttk.Frame(self.tabs, padding=14)
         self.tabs.add(tab, text="LinkedIn Jobs")
@@ -533,6 +644,10 @@ class ScraperHub(tk.Tk):
             return self._google_maps_command()
         if selected == "Twitter/X":
             return self._twitter_command()
+        if selected == "Real Estate":
+            return self._real_estate_command()
+        if selected == "Data Intel":
+            return self._data_intelligence_command()
         if selected == "LinkedIn Jobs":
             return self._linkedin_jobs_command()
         if selected == "Indeed Jobs":
@@ -821,6 +936,90 @@ class ScraperHub(tk.Tk):
             cmd.append("--tweets")
         return cmd, cwd
 
+    def _real_estate_command(self) -> tuple[list[str], Path]:
+        cwd = ROOT_DIR / "Real_Estate_Scraper"
+        queries = self._lines(self.property_queries)
+        direct_url = self.property_direct_url.get().strip()
+        if not queries and not direct_url:
+            raise ValueError("Enter at least one property search query or direct results URL.")
+        output = self.property_output.get().strip()
+        if not output:
+            raise ValueError("Choose an output CSV for property listings.")
+
+        sites: list[str] = []
+        if self.property_magicbricks.get():
+            sites.append("magicbricks")
+        if self.property_99acres.get():
+            sites.append("99acres")
+        if not sites:
+            raise ValueError("Select at least one real estate site.")
+
+        cmd = [
+            sys.executable,
+            "run_scraper.py",
+            "--output",
+            output,
+            "--max-pages",
+            self.property_max_pages.get().strip() or "2",
+            "--browser",
+            self.property_browser.get(),
+        ]
+        for site in sites:
+            cmd.extend(["--site", site])
+        for query in queries:
+            cmd.extend(["--query", query])
+        if direct_url:
+            cmd.extend(["--url", direct_url])
+        location = self.property_location.get().strip()
+        if location:
+            cmd.extend(["--location", location])
+        if self.property_json.get():
+            cmd.extend(["--json-output", str(Path(output).with_suffix(".json"))])
+        if self.property_headed.get():
+            cmd.append("--headed")
+        if self.property_use_env_proxies.get():
+            cmd.append("--use-env-proxies")
+        return cmd, cwd
+
+    def _data_intelligence_command(self) -> tuple[list[str], Path]:
+        cwd = ROOT_DIR / "Data_Intelligence_Scraper"
+        inputs = self._lines(self.intel_inputs)
+        mode = self.intel_mode.get()
+        if not inputs:
+            raise ValueError("Enter at least one Data Intel input.")
+        output = self.intel_output.get().strip()
+        if not output:
+            raise ValueError("Choose an output CSV for Data Intel results.")
+
+        cmd = [
+            sys.executable,
+            "run_scraper.py",
+            "--mode",
+            mode,
+            "--output",
+            output,
+            "--limit",
+            self.intel_limit.get().strip() or "25",
+        ]
+        flag = "--feed-url" if mode == "news" else "--domain" if mode == "whois" else "--query"
+        for value in inputs:
+            cmd.extend([flag, value])
+        if mode == "github":
+            if self.intel_github_language.get().strip():
+                cmd.extend(["--github-language", self.intel_github_language.get().strip()])
+            if self.intel_github_topic.get().strip():
+                cmd.extend(["--github-topic", self.intel_github_topic.get().strip()])
+        if mode == "serp":
+            cmd.extend(["--serp-provider", self.intel_serp_provider.get()])
+            cmd.extend(["--serp-browser", self.intel_serp_browser.get()])
+            if self.intel_serp_headed.get():
+                cmd.append("--serp-headed")
+        if self.intel_json.get():
+            cmd.extend(["--json-output", str(Path(output).with_suffix(".json"))])
+        if self.intel_use_env_proxies.get():
+            cmd.append("--use-env-proxies")
+        return cmd, cwd
+
     def _linkedin_jobs_command(self) -> tuple[list[str], Path]:
         cwd = ROOT_DIR / "Jobs_Scraper"
         queries = self._lines(self.linkedin_queries)
@@ -944,6 +1143,10 @@ class ScraperHub(tk.Tk):
             path = Path(self.gmaps_output.get()).expanduser().resolve()
         elif selected == "Twitter/X":
             path = Path(self.twitter_output.get()).expanduser().resolve()
+        elif selected == "Real Estate":
+            path = Path(self.property_output.get()).expanduser().resolve().parent
+        elif selected == "Data Intel":
+            path = Path(self.intel_output.get()).expanduser().resolve().parent
         else:
             path = Path(self.video_output.get()).expanduser().resolve()
         path.mkdir(parents=True, exist_ok=True)

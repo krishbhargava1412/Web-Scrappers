@@ -6,6 +6,8 @@ A collection of Python scraping and downloading utilities:
 - `Ecommerce_Scraper/` scrapes product listings and reviews from Amazon (India & US) and Flipkart, plus a cross-platform price comparator.
 - `Social_Media_Scraper/` scrapes Reddit posts/comments, YouTube channel analytics, Google Maps business listings, and Twitter/X profiles and tweets.
 - `Jobs_Scraper/` scrapes public job listings from LinkedIn with job title, company, location, posted date, and direct URLs.
+- `Real_Estate_Scraper/` scrapes public property listings from MagicBricks and 99acres.
+- `Data_Intelligence_Scraper/` collects SERP, RSS/news, GitHub repository, and WHOIS/domain intelligence records.
 - `Influencer_Marketing_Scrapper/` discovers public influencer profiles across platforms such as Instagram, Facebook, TikTok, YouTube, X, and LinkedIn using market-specific keyword configs.
 - `truecaller_scraper/` validates Indian phone numbers from CSV files and checks them with a Scrapy + Playwright Truecaller spider.
 - `Stock_Market_Scraper/` fetches latest stock prices for complete market universes (India NSE, US Nasdaq/NYSE) from Yahoo Finance with crumb-based authentication.
@@ -50,6 +52,8 @@ The hub provides one desktop window with tabs for:
 - YouTube channel analytics and video stats
 - Google Maps business listing extraction
 - Twitter/X profile and tweet scraping
+- MagicBricks and 99acres real estate listing extraction
+- Data intelligence collection for RSS/news, GitHub, Google SERP, and WHOIS lookups
 - LinkedIn public job listing search
 - Influencer discovery
 - Truecaller phone validation/scraping
@@ -386,6 +390,72 @@ Key options:
 --limit N             Max tweets per user (default: 20)
 --headed              Show browser window (useful for debugging)
 ```
+
+## Real Estate Property Scraper
+
+Scrape public property listings from MagicBricks and 99acres:
+
+```powershell
+cd Real_Estate_Scraper
+..\venv\Scripts\python.exe run_scraper.py --query "2 bhk apartment" --location "Mumbai"
+..\venv\Scripts\python.exe run_scraper.py --site magicbricks --query "villa" --location "Pune" --max-pages 3
+..\venv\Scripts\python.exe run_scraper.py --site magicbricks --site 99acres --query "office space" --location "Bengaluru" --json-output output\property_listings.json
+..\venv\Scripts\python.exe run_scraper.py --site 99acres --query "2 bhk flat" --location "Mumbai" --browser always --headed
+..\venv\Scripts\python.exe run_scraper.py --url "https://www.99acres.com/search/property/buy/andheri-west?city=12&preference=S&area_unit=1&res_com=R"
+```
+
+Key options:
+
+```text
+--site {all,magicbricks,99acres}  Site to scrape; repeatable (default: all)
+--query TEXT                      Property search query; repeatable
+--url URL                         Direct search results URL; repeatable
+--location TEXT                   City or area filter
+--max-pages N                     Search result pages per query/site (default: 2)
+--output PATH                     CSV output path
+--json-output PATH                Optional JSON output
+--browser {auto,always,never}     Use Chromium rendering for blocked pages (default: auto)
+--headed                          Show Chromium when browser rendering is used
+--use-env-proxies                 Honor HTTP(S)_PROXY environment variables
+```
+
+Output fields include site, query, title, price, area, BHK, locality, city, builder, property type, amenities, listing URL, image URL, and source URL.
+
+99acres may block static HTTP requests or reject generated URLs that do not include its internal city/locality filters. The default `--browser auto` retries 99acres pages with Chromium when a request is blocked or empty. If the generated page says "no page found", run the search manually on 99acres, copy the browser's results URL, and pass it with `--url`. If the site shows a challenge page, run with `--browser always --headed` so the browser is visible. If the IP itself is blocked, use a compliant proxy through `HTTP_PROXY` / `HTTPS_PROXY` plus `--use-env-proxies`, or wait for the block to clear.
+
+## Data & Intelligence Scraper
+
+Collect structured intelligence records from RSS/Atom feeds, GitHub repository search, Google search result pages, and WHOIS domain lookups:
+
+```powershell
+cd Data_Intelligence_Scraper
+..\venv\Scripts\python.exe run_scraper.py --mode news --feed-url "https://news.google.com/rss/search?q=real+estate" --limit 25
+..\venv\Scripts\python.exe run_scraper.py --mode github --query "web scraper" --github-language Python --github-topic osint
+..\venv\Scripts\python.exe run_scraper.py --mode serp --query "site:example.com market report" --limit 10
+..\venv\Scripts\python.exe run_scraper.py --mode serp --query "hotels" --serp-provider duckduckgo
+..\venv\Scripts\python.exe run_scraper.py --mode serp --query "hotels" --serp-browser always --serp-headed
+..\venv\Scripts\python.exe run_scraper.py --mode whois --domain example.com --domain openai.com
+```
+
+Key options:
+
+```text
+--mode {news,github,serp,whois}  Intelligence source mode
+--query TEXT                     Search query for GitHub or SERP mode; repeatable
+--feed-url URL                   RSS/Atom feed URL for news mode; repeatable
+--domain DOMAIN                  Domain for WHOIS mode; repeatable
+--github-language TEXT           Optional GitHub language qualifier
+--github-topic TEXT              Optional GitHub topic qualifier
+--serp-provider {auto,google,duckduckgo}  SERP provider (default: auto)
+--serp-browser {never,auto,always}        Use Chromium for SERP pages
+--serp-headed                   Show Chromium for challenge pages
+--limit N                        Max records per input (default: 25)
+--output PATH                    CSV output path
+--json-output PATH               Optional JSON output
+--use-env-proxies                Honor HTTP(S)_PROXY environment variables
+```
+
+Google SERP scraping is fragile and may return no records when Google serves a block or markup change. SERP mode defaults to `--serp-provider auto`, which tries Google first and falls back to DuckDuckGo's lightweight HTML endpoint. If search providers show challenge pages, retry with `--serp-browser always --serp-headed` and complete the browser challenge. For reliable production SERP collection, use a compliant search API.
 
 ### LinkedIn Job Scraper
 

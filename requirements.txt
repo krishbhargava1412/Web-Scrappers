@@ -20,3 +20,6 @@ colorama>=0.4.6
 
 # Optional CLI/progress helpers used by some scripts
 tqdm>=4.66.0
+
+# Test runner
+pytest>=8.0.0
